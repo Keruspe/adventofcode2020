@@ -16,8 +16,7 @@ fn main() {
     }).collect::<Vec<_>>();
 
     let count = entries.iter().filter(|(min, max, letter, password)| {
-        let count = password.chars().filter(|c| c == letter).count();
-        count >= *min && count <= *max
+        (password.chars().nth(min - 1).unwrap() == *letter) ^ (password.chars().nth(max - 1).unwrap() == *letter)
     }).count();
 
     println!("{}", count);
