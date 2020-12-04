@@ -6,9 +6,11 @@ fn main() {
     let numbers = Cursor::new(INPUT).lines().into_iter().map(|line| line.unwrap().parse().unwrap()).collect::<Vec<u64>>();
     for x in &numbers {
         for y in &numbers {
-            if x + y == 2020 {
-                println!("{}", x * y);
-                return;
+            for z in &numbers {
+                if x + y + z == 2020 {
+                    println!("{}", x * y * z);
+                    return;
+                }
             }
         }
     }
