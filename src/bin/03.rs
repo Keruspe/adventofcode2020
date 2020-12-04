@@ -28,11 +28,15 @@ fn main() {
     let area = Area(Cursor::new(INPUT).lines().into_iter().map(|line| {
         Line(line.unwrap().chars().map(|c| if c == '#' { Square::Tree } else { Square::Empty }).collect())
     }).collect());
-    let mut trees = 0;
-    for y in 1..area.0.len() {
-        if let Square::Tree = area.get(y * 3, y) {
-            trees += 1;
+    let scenarii = vec![(1, 1), (3, 1), (5, 1), (7, 1), (1, 2)];
+    let res: u64 = scenarii.iter().map(|(right, down)| {
+        let mut trees = 0;
+        for y in (*down..area.0.len()).step_by(*down) {
+            if let Square::Tree = area.get((y / down) * right, y) {
+                trees += 1;
+            }
         }
-    }
-    println!("{}", trees);
+        trees
+    }).product();
+    println!("{}", res);
 }
