@@ -1,4 +1,5 @@
 use std::io::{BufRead, Cursor};
+use std::collections::HashSet;
 
 static INPUT: &str = include_str!("./05.txt");
 
@@ -17,6 +18,11 @@ fn seat_id(s: &str) -> u64 {
 }
 
 fn main() {
-    let max = Cursor::new(INPUT).lines().into_iter().map(|line| seat_id(&line.unwrap())).max().unwrap();
-    println!("{}", max);
+    let seats = Cursor::new(INPUT).lines().into_iter().map(|line| seat_id(&line.unwrap())).collect::<HashSet<u64>>();
+    for i in 1..=*seats.iter().max().unwrap() {
+        if !seats.contains(&i) && seats.contains(&(i - 1)) && seats.contains(&(i + 1)) {
+            println!("{}", i);
+            break;
+        }
+    }
 }
