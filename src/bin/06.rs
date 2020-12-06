@@ -4,21 +4,22 @@ static INPUT: &str = include_str!("./06.txt");
 
 const A: usize = 'a' as usize;
 
-struct Group([bool; 26]);
+struct Group(u8, [u8; 26]);
 
 impl Group {
     fn new() -> Self {
-        Self([false; 26])
+        Self(0, [0; 26])
     }
 
     fn add_person(&mut self, s: &str) {
+        self.0 += 1;
         for c in s.as_bytes() {
-            self.0[*c as usize - A] = true;
+            self.1[*c as usize - A] += 1;
         }
     }
 
     fn count(&self) -> usize {
-        self.0.iter().filter(|b| **b).count()
+        self.1.iter().filter(|c| **c == self.0).count()
     }
 }
 
