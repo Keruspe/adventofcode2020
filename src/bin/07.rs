@@ -15,6 +15,16 @@ fn can_contain(bags: &HashMap<String, Vec<(u8, String)>>, current_colour: &str, 
         })
 }
 
+fn must_contain(bags: &HashMap<String, Vec<(u8, String)>>, colour: &str) -> u64 {
+    bags.get(colour)
+        .unwrap()
+        .iter()
+        .map(|(number, colour)| {
+            (*number as u64) * (1 + must_contain(bags, colour))
+        })
+        .sum()
+}
+
 fn main() {
     let bags = INPUT.lines().map(|line| {
         let (container, contents) = line.split_once(" bags contain ").unwrap();
@@ -34,4 +44,6 @@ fn main() {
 
     let count = bags.keys().filter(|colour| can_contain(&bags, colour, TARGET_COLOUR)).count();
     println!("{}", count);
+
+    println!("{}", must_contain(&bags, TARGET_COLOUR));
 }
