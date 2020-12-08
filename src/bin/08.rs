@@ -5,6 +5,7 @@ use std::sync::atomic::{AtomicI64, Ordering};
 static INPUT: &str = include_str!("./08.txt");
 static ACCUMULATOR: AtomicI64 = AtomicI64::new(0);
 
+#[derive(Clone)]
 enum Instruction {
     Acc(i64),
     Jmp(i64),
@@ -32,17 +33,18 @@ fn parse_instruction(s: &str) -> Instruction {
     }
 }
 
-fn run(instructions: &[Instruction]) {
+fn run(instructions: &[Instruction]) -> bool {
+    ACCUMULATOR.store(0, Ordering::SeqCst);
     let mut passed_instructions = instructions.iter().map(|_| false).collect::<Vec<_>>();
     let mut idx = 0usize;
     loop {
         if idx == instructions.len() {
             println!("Program terminated with accumulator {}", ACCUMULATOR.load(Ordering::SeqCst));
-            break;
+            return true;
         }
         if passed_instructions[idx] {
             println!("Infinite loop at idx {} with accumulator {}, aborting", idx, ACCUMULATOR.load(Ordering::SeqCst));
-            break;
+            return false;
         }
         passed_instructions[idx] = true;
         match instructions[idx] {
@@ -58,5 +60,21 @@ fn run(instructions: &[Instruction]) {
 
 fn main() {
     let instructions = INPUT.lines().map(parse_instruction).collect::<Vec<_>>();
-    run(&instructions);
+    let mut attempted_nops = instructions.iter().enumerate().filter_map(|(idx, ins)| if let Instruction::Nop(arg) = ins { Some((idx, false, arg)) } else { None }).collect::<Vec<_>>();
+    let mut attempted_jmps = instructions.iter().enumerate().filter_map(|(idx, ins)| if let Instruction::Jmp(_) = ins { Some((idx, false)) } else { None }).collect::<Vec<_>>();
+    loop {
+        let mut instructions = instructions.clone();
+        if let Some((i, idx, arg)) = attempted_nops.clone().iter().enumerate().filter_map(|(i, (idx, b, arg))| if !*b { Some((i, idx, arg)) } else { None }).next() {
+            attempted_nops[i].1 = true;
+            instructions[*idx] = Instruction::Jmp(**arg);
+        } else if let Some((i, idx)) = attempted_jmps.clone().iter().enumerate().filter_map(|(i, (idx, b))| if !*b { Some((i, idx)) } else { None }).next() {
+            attempted_jmps[i].1 = true;
+            instructions[*idx] = Instruction::Nop(0);
+        } else {
+            unreachable!();
+        }
+        if run(&instructions) {
+            break;
+        }
+    }
 }
