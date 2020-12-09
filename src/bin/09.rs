@@ -31,4 +31,21 @@ fn main() {
         .unwrap()
         .1;
     println!("{}", first_wrong);
+    let mut start = 0;
+    let mut end = 0;
+    let mut acc = 0;
+    for u in &input {
+        end += 1;
+        acc += u;
+        while acc > first_wrong {
+            acc -= input[start];
+            start += 1;
+        }
+        if acc == first_wrong {
+            break;
+        }
+    }
+    let min = input[start..end].iter().min().unwrap();
+    let max = input[start..end].iter().max().unwrap();
+    println!("{}", min + max);
 }
