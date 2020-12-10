@@ -1,5 +1,13 @@
 static INPUT: &str = include_str!("./10.txt");
 
+fn walk(joltages: &[usize], current: usize) -> usize {
+    if joltages.is_empty() {
+        1
+    } else {
+        joltages.iter().take_while(|j| *j - current <= 3).enumerate().map(|(i, j)| walk(&joltages[(1 + i)..], *j)).sum()
+    }
+}
+
 fn main() {
     let mut joltages = INPUT.lines().map(|line| line.parse::<usize>().unwrap()).collect::<Vec<_>>();
     let device_joltage = joltages.iter().max().unwrap() + 3;
@@ -22,4 +30,6 @@ fn main() {
     println!("Diff is 2: {}", diff_two);
     println!("Diff is 3: {}", diff_three);
     println!("Part 1: {}", diff_one * diff_three);
+    let count = walk(&joltages[1..], 0);
+    println!("Part 2: {}", count);
 }
