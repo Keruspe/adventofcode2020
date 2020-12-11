@@ -1,7 +1,7 @@
 static INPUT: &str = include_str!("./11.txt");
 
-const TOLERANCE: u8 = 4;
-const DIRECT_ONLY: bool = true;
+const TOLERANCE: u8 = 5;
+const DIRECT_ONLY: bool = false;
 
 #[derive(PartialEq, Clone)]
 enum Position {
