@@ -1,5 +1,8 @@
 static INPUT: &str = include_str!("./11.txt");
 
+const TOLERANCE: u8 = 4;
+const DIRECT_ONLY: bool = true;
+
 #[derive(PartialEq, Clone)]
 enum Position {
     EmptySeat,
@@ -19,44 +22,76 @@ impl From<char> for Position {
 
 fn adjacent_occupied(room: &[Vec<Position>], r: usize, c: usize) -> u8 {
     let mut count = 0;
-    if r > 0 {
-        if c > 0 {
-            if room[r - 1][c - 1] == Position::OccupiedSeat {
-                count += 1;
-            }
-        }
-        if room[r - 1][c] == Position::OccupiedSeat {
+    for i in 1..=r.min(c) {
+        if room[r - i][c - i] == Position::OccupiedSeat {
             count += 1;
+            break;
         }
-        if c < room[r - 1].len() - 1 {
-            if room[r - 1][c + 1] == Position::OccupiedSeat {
-                count += 1;
-            }
+        if room[r - i][c - i] == Position::EmptySeat || DIRECT_ONLY {
+            break;
         }
     }
-    if c > 0 {
-        if room[r][c - 1] == Position::OccupiedSeat {
+    for i in 1..=r {
+        if room[r - i][c] == Position::OccupiedSeat {
             count += 1;
+            break;
+        }
+        if room[r - i][c] == Position::EmptySeat || DIRECT_ONLY {
+            break;
         }
     }
-    if c < room[r].len() - 1 {
-        if room[r][c + 1] == Position::OccupiedSeat {
+    for i in 1..=r.min(room[0].len() - c - 1) {
+        if room[r - i][c + i] == Position::OccupiedSeat {
             count += 1;
+            break;
+        }
+        if room[r - i][c + i] == Position::EmptySeat || DIRECT_ONLY {
+            break;
         }
     }
-    if r < room.len() - 1 {
-        if c > 0 {
-            if room[r + 1][c - 1] == Position::OccupiedSeat {
-                count += 1;
-            }
-        }
-        if room[r + 1][c] == Position::OccupiedSeat {
+    for i in 1..=c {
+        if room[r][c - i] == Position::OccupiedSeat {
             count += 1;
+            break;
         }
-        if c < room[r + 1].len() - 1 {
-            if room[r + 1][c + 1] == Position::OccupiedSeat {
-                count += 1;
-            }
+        if room[r][c - i] == Position::EmptySeat || DIRECT_ONLY {
+            break;
+        }
+    }
+    for i in 1..(room[0].len() - c) {
+        if room[r][c + i] == Position::OccupiedSeat {
+            count += 1;
+            break;
+        }
+        if room[r][c + i] == Position::EmptySeat || DIRECT_ONLY {
+            break;
+        }
+    }
+    for i in 1..=(room.len() - r - 1).min(c) {
+        if room[r + i][c - i] == Position::OccupiedSeat {
+            count += 1;
+            break;
+        }
+        if room[r + i][c - i] == Position::EmptySeat || DIRECT_ONLY {
+            break;
+        }
+    }
+    for i in 1..(room.len() - r) {
+        if room[r + i][c] == Position::OccupiedSeat {
+            count += 1;
+            break;
+        }
+        if room[r + i][c] == Position::EmptySeat || DIRECT_ONLY {
+            break;
+        }
+    }
+    for i in 1..(room.len() - r).min(room[0].len() - c) {
+        if room[r + i][c + i] == Position::OccupiedSeat {
+            count += 1;
+            break;
+        }
+        if room[r + i][c + i] == Position::EmptySeat || DIRECT_ONLY {
+            break;
         }
     }
     count
@@ -76,7 +111,7 @@ fn main() {
                 let adjacent = adjacent_occupied(&current, r, c);
                 if adjacent == 0 {
                     room[r][c] = Position::OccupiedSeat;
-                } else if adjacent >= 4 {
+                } else if adjacent >= TOLERANCE {
                     room[r][c] = Position::EmptySeat;
                 }
             }
