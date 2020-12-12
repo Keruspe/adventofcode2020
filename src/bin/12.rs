@@ -1,6 +1,7 @@
 static INPUT: &str = include_str!("./12.txt");
 
 use std::str::FromStr;
+use std::ops::AddAssign;
 
 enum Instruction {
     North(usize),
@@ -31,51 +32,7 @@ impl FromStr for Instruction {
     }
 }
 
-#[derive(Clone, Copy)]
-enum Direction {
-    East,
-    South,
-    West,
-    North,
-}
-
-impl Direction {
-    fn next(&self, instr: &Instruction) -> Self {
-        match instr {
-            Instruction::Right(angle) => self.turn_right((angle / 90) %  4),
-            Instruction::Left(angle) => self.turn_left((angle / 90) %  4),
-            _ => *self
-        }
-    }
-
-    fn turn_right(&self, count: usize) -> Self {
-        if count == 0 {
-            *self
-        } else {
-            match self {
-                Direction::East => Direction::South.turn_right(count - 1),
-                Direction::South => Direction::West.turn_right(count - 1),
-                Direction::West => Direction::North.turn_right(count - 1),
-                Direction::North => Direction::East.turn_right(count - 1),
-            }
-        }
-    }
-
-    fn turn_left(&self, count: usize) -> Self {
-        if count == 0 {
-            *self
-        } else {
-            match self {
-                Direction::East => Direction::North.turn_left(count - 1),
-                Direction::North => Direction::West.turn_left(count - 1),
-                Direction::West => Direction::South.turn_left(count - 1),
-                Direction::South => Direction::East.turn_left(count - 1),
-            }
-        }
-    }
-}
-
-#[derive(Default)]
+#[derive(Default, Clone, Copy)]
 struct Position {
     east: usize,
     west: usize,
@@ -125,26 +82,52 @@ impl Position {
     }
 }
 
+impl AddAssign for Position {
+    fn add_assign(&mut self, other: Self) {
+        self.move_north(other.north);
+        self.move_west(other.west);
+        self.move_south(other.south);
+        self.move_east(other.east);
+    }
+}
+
+struct Waypoint {
+    offset: Position,
+}
+
+impl Waypoint {
+    fn rotate_left(&mut self, count: usize) {
+        for _ in 0..count {
+            let tmp = self.offset.north;
+            self.offset.north = self.offset.east;
+            self.offset.east = self.offset.south;
+            self.offset.south = self.offset.west;
+            self.offset.west = tmp;
+        }
+    }
+
+    fn rotate_right(&mut self, count: usize) {
+        self.rotate_left(4 - (count % 4))
+    }
+}
+
 struct Boat {
     position: Position,
-    direction: Direction,
+    waypoint: Waypoint,
 }
 
 impl Boat {
     fn follow_instruction(&mut self, instr: &Instruction) {
-        self.direction = self.direction.next(instr);
         match instr {
-            Instruction::North(count) => self.position.move_north(*count),
-            Instruction::East(count) => self.position.move_east(*count),
-            Instruction::West(count) => self.position.move_west(*count),
-            Instruction::South(count) => self.position.move_south(*count),
-            Instruction::Forward(count) => match self.direction {
-                Direction::North => self.position.move_north(*count),
-                Direction::East => self.position.move_east(*count),
-                Direction::West => self.position.move_west(*count),
-                Direction::South => self.position.move_south(*count),
-            }
-            _ => {}
+            Instruction::North(count) => self.waypoint.offset.move_north(*count),
+            Instruction::East(count) => self.waypoint.offset.move_east(*count),
+            Instruction::West(count) => self.waypoint.offset.move_west(*count),
+            Instruction::South(count) => self.waypoint.offset.move_south(*count),
+            Instruction::Left(count) => self.waypoint.rotate_left(count / 90),
+            Instruction::Right(count) => self.waypoint.rotate_right(count / 90),
+            Instruction::Forward(count) => for _ in 0..*count {
+                self.position += self.waypoint.offset
+            },
         }
     }
 }
@@ -153,7 +136,13 @@ fn main() {
     let instructions = INPUT.lines().map(|line| line.parse::<Instruction>().unwrap()).collect::<Vec<_>>();
     let mut boat = Boat {
         position: Position::default(),
-        direction: Direction::East,
+        waypoint: Waypoint {
+            offset: Position {
+                east: 10,
+                north: 1,
+                ..Position::default()
+            }
+        },
     };
     for instr in &instructions {
         boat.follow_instruction(instr);
