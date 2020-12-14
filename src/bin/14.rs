@@ -35,6 +35,20 @@ impl Mask {
     fn apply(&self, input: u64) -> u64 {
         input & self.zeroes | self.ones
     }
+
+    fn apply2(&self, input: usize) -> Vec<usize> {
+        self.apply2_internal(&self.xs[..], input | self.ones as usize)
+    }
+
+    fn apply2_internal(&self, xs: &[usize], input: usize) -> Vec<usize> {
+        if let Some((bit, xs)) = xs.split_first() {
+            let mut res = self.apply2_internal(xs, input & !(1 << bit));
+            res.append(&mut self.apply2_internal(xs, input | 1 << bit));
+            res
+        } else {
+            vec![input]
+        }
+    }
 }
 
 impl Default for Mask {
@@ -73,6 +87,17 @@ fn main() {
         match instr {
             Instruction::Mask(m) => mask = m.clone(),
             Instruction::Assign(idx, val) => drop(memory.insert(*idx, mask.apply(*val))),
+        }
+    }
+    println!("{}", memory.values().sum::<u64>());
+    memory = BTreeMap::new();
+    mask = Mask::default();
+    for instr in &instructions {
+        match instr {
+            Instruction::Mask(m) => mask = m.clone(),
+            Instruction::Assign(idx, val) => for idx in mask.apply2(*idx) {
+                memory.insert(idx, *val);
+            }
         }
     }
     println!("{}", memory.values().sum::<u64>());
