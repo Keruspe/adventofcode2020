@@ -26,4 +26,5 @@ fn run(init: &[usize], boundary: usize) {
 fn main() {
     let init = INPUT.lines().next().unwrap().split(",").map(|n| n.parse::<usize>().unwrap()).collect::<Vec<_>>();
     run(&init[..], 2020);
+    run(&init[..], 30000000);
 }
