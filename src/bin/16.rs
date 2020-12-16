@@ -2,6 +2,7 @@
 
 static INPUT: &str = include_str!("./16.txt");
 
+use std::collections::HashSet;
 use std::str::FromStr;
 
 struct Range(usize, usize);
@@ -51,6 +52,14 @@ impl Constraints {
     fn validate(&self, n: usize) -> bool {
         self.0.iter().any(|r| r.validate(n))
     }
+
+    fn validate_ticket(&self, ticket: &Ticket) -> bool {
+        ticket.0.iter().all(|f| self.validate(*f))
+    }
+
+    fn matching_constraints(&self, ticket: &Ticket) -> Vec<HashSet<String>> {
+        ticket.0.iter().map(|f| self.0.iter().filter(|c| c.validate(*f)).map(|c| c.name.clone()).collect::<HashSet<_>>()).collect::<Vec<_>>()
+    }
 }
 
 enum ParsingState {
@@ -96,4 +105,22 @@ fn main() {
 
     let part1 = nearby_tickets.iter().map(|t| t.0.iter().filter_map(|f| Some(f).filter(|f| !constraints.validate(**f))).sum::<usize>()).sum::<usize>();
     println!("{}", part1);
+
+    let mut matching_constraints = constraints.matching_constraints(&self_ticket);
+    for t in nearby_tickets.iter().filter(|t| constraints.validate_ticket(t)) {
+        let mc = constraints.matching_constraints(t);
+        matching_constraints = matching_constraints.iter().zip(mc.iter()).map(|(l, r)| l.intersection(r).cloned().collect()).collect();
+    }
+    let mut accurate_constraints: HashSet<String> = HashSet::new();
+    while accurate_constraints.len() != matching_constraints.len() {
+        accurate_constraints = matching_constraints.iter().filter_map(|names| names.iter().next().filter(|_| names.len() == 1)).cloned().collect();
+        for i in 0..matching_constraints.len() {
+            if matching_constraints[i].len() == 1 {
+                continue;
+            }
+            matching_constraints[i] = matching_constraints[i].difference(&accurate_constraints).cloned().collect();
+        }
+    }
+    let part2 = matching_constraints.iter().enumerate().filter(|(_, names)| names.iter().any(|name| name.starts_with("departure"))).map(|(idx, _)| self_ticket.0[idx]).product::<usize>();
+    println!("{}", part2);
 }
