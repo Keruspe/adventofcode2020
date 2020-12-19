@@ -90,4 +90,8 @@ fn main() {
     let rule0 = rules.get(&0).unwrap().clone();
     let valid = messages.iter().filter(|m| rule0.validate(m, &rules).iter().any(|(valid, m)| *valid && m.is_empty())).count();
     println!("{}", valid);
+    rules.insert(8, Rule::Alt(RuleSet(vec![42]), RuleSet(vec![42, 8])));
+    rules.insert(11, Rule::Alt(RuleSet(vec![42, 31]), RuleSet(vec![42, 11, 31])));
+    let valid = messages.iter().filter(|m| rule0.validate(m, &rules).iter().any(|(valid, m)| *valid && m.is_empty())).count();
+    println!("{}", valid);
 }
